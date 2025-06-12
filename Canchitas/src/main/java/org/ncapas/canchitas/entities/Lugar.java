@@ -32,8 +32,4 @@ public class Lugar {
     @JoinColumn(name = "id_zona", nullable = false, foreignKey = @ForeignKey(name = "fk_zona"))
     private Zona zona;
 
-    @ManyToOne
-    @JoinColumn(name = "id_cancha", nullable = false, foreignKey = @ForeignKey(name = "fk_cancha"))
-    private Cancha cancha;
-
 }
