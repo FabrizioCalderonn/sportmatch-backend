@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: canchitas
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/canchitas_management
+    username: postgres
+    password: admin
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
