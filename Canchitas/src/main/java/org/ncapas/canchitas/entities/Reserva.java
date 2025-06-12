@@ -43,7 +43,7 @@ public class Reserva {
     @Enumerated(EnumType.STRING)
     private EstadoReserva estadoReserva;
 
-    private enum EstadoReserva {
+    public enum EstadoReserva {
         PENDIENTE,
         FINALIZADA;
 
