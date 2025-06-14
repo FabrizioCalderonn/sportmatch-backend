@@ -23,7 +23,7 @@ public class EstadoDisponibilidad {
     @Column(name = "estado", nullable = false)
     private Status estado;
 
-   private enum Status{
+   public enum Status{
         DISPONIBLE,
         NO_DISPONIBLE;
 
