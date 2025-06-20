@@ -12,11 +12,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class JornadaRequestDTO {
 
     @NotNull(message = "La hora de inicio es obligatoria")
-    @JsonFormat(pattern = "HH:mm")
     private LocalTime horaInicio;
 
     @NotNull(message = "La hora de fin es obligatoria")
-    @JsonFormat(pattern = "HH:mm")
     private LocalTime horaFin;
 
     @NotNull(message = "El precio por hora es obligatorio")

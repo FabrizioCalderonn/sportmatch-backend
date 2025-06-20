@@ -37,4 +37,8 @@ public class Jornada {
     @JoinColumn(name = "id_estado_disponibilidad", nullable = false, foreignKey = @ForeignKey(name = "fk_estado_disponibilidad"))
     private EstadoDisponibilidad estadoDisponibilidad;
 
+    @ManyToOne
+    @JoinColumn(name = "id_cancha", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_cancha"))
+    private Cancha cancha;
 }

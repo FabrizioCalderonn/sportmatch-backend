@@ -4,29 +4,26 @@ import org.ncapas.canchitas.entities.Cancha;
 import org.ncapas.canchitas.DTOs.response.CanchasResponseDTO;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 public class CanchaMapper {
 
-    /** Convierte una entidad Cancha a su DTO de respuesta */
-    public static CanchasResponseDTO toDTO(Cancha entidad) {
+    public static CanchasResponseDTO toDTO(Cancha cancha) {
         return CanchasResponseDTO.builder()
-                .idCancha(entidad.getIdCancha())
-                .nombre(entidad.getNombre())
-                .foto(entidad.getFoto())
-                .numeroCancha(entidad.getNumeroCancha())
-                // Enum Tipo del campo tipoCancha
-                .tipoCancha(entidad.getTipoCancha().getTipo().toValue())
-                // Usamos el día de la semana para representar la jornada
-                .jornada(entidad.getJornada().getSemana().getDia().toString())
-                // Nombre del lugar
-                .lugar(entidad.getLugar().getNombre())
+                .idCancha(cancha.getIdCancha())
+                .nombre(cancha.getNombre())
+                .imagenes(cancha.getImagenes())
+                .numeroCancha(cancha.getNumeroCancha())
+                .tipoCancha(cancha.getTipoCancha().getTipo().name())
+                .lugar(cancha.getLugar().getNombre())
+                .jornadas(JornadaMapper.toDTOList(cancha.getJornadas()))
                 .build();
     }
 
-    /** Convierte una lista de Cancha a lista de DTOs */
     public static List<CanchasResponseDTO> toDTOList(List<Cancha> entidades) {
         return entidades.stream()
                 .map(CanchaMapper::toDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 }

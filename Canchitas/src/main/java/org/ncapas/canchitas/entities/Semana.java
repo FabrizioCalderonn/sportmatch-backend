@@ -1,10 +1,7 @@
 package org.ncapas.canchitas.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 
 @Entity
 @Data
@@ -19,25 +16,15 @@ public class Semana {
     @Column(name = "id_semana")
     private Integer idSemana;
 
-    @Column(name = "dia")
+    @Enumerated(EnumType.STRING)           // ← guarda LUNES, MARTES, …
+    @Column(name = "dia", nullable = false)
     private Dia dia;
 
     public enum Dia {
-        LUNES,
-        MARTES,
-        MIERCOLES,
-        JUEVES,
-        VIERNES,
-        SABADO,
-        DOMINGO;
+        LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO;
 
         public static Dia from(String value) {
             return Dia.valueOf(value.trim().toUpperCase());
-        }
-
-        @Override
-        public String toString() {
-            return this.name();
         }
     }
 }

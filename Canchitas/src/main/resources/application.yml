@@ -4,7 +4,7 @@ spring:
 
 
   datasource:
-    url: jdbc:postgresql://localhost:5439/canchitas_management
+    url: jdbc:postgresql://localhost:5439/canchitas_management_pruebas
     username: postgres
     password: admin
 

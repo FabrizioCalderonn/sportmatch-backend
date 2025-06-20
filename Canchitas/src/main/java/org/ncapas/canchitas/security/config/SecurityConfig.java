@@ -32,10 +32,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()                      // login
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()    // registro
                         .requestMatchers(HttpMethod.GET,  "/api/lugares/zonas").permitAll() // combo de zonas ← NUEVO
+                        .requestMatchers(HttpMethod.GET, "/api/canchas/tipos").permitAll() // Obtemer canchas
+                        .requestMatchers(HttpMethod.GET, "/api/canchas/{id}").permitAll() // Obtemer canchas
 
                         // *** REGISTRO PÚBLICO ***
                         .requestMatchers(HttpMethod.POST,   "/api/lugares").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/lugares/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/canchas").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/canchas/**").hasRole("ADMIN")
                         // todo lo demás necesita token
                         .anyRequest().authenticated()
                 )
