@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -46,10 +47,20 @@ public class UsuariosController {
                 .body(creada);
     }
 
-    /** DELETE /api/v1/usuarios/{id} — Eliminar un usuario */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarUsuario(@PathVariable int id) {
+    public ResponseEntity<Map<String, String>> eliminarUsuario(@PathVariable int id) {
+
+        // 1) Traer primero al usuario para conocer su nombre
+        UsuarioResponseDTO usuario = usuarioService.findById(id);   // lanza 404 si no existe
+
+        // 2) Eliminar
         usuarioService.delete(id);
-        return ResponseEntity.noContent().build();
+
+        // 3) Mensaje de confirmación
+        String msg = "El usuario \"" + usuario.getNombre()
+                + "\" (id=" + usuario.getIdUsuario() + ") ha sido eliminado";
+
+        return ResponseEntity.ok( Map.of("mensaje", msg) );   // 200 OK
     }
+
 }
