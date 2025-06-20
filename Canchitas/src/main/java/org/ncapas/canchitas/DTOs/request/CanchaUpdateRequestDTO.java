@@ -19,7 +19,6 @@ import java.util.List;
 @Builder
 public class CanchaUpdateRequestDTO {
 
-    @NotNull
     private Integer idCancha;
 
     @NotBlank

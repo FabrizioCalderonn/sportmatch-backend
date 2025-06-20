@@ -3,11 +3,13 @@ package org.ncapas.canchitas.Service.impl;
 import lombok.RequiredArgsConstructor;
 import org.ncapas.canchitas.DTOs.request.*;
 import org.ncapas.canchitas.DTOs.response.CanchasResponseDTO;
+import org.ncapas.canchitas.DTOs.response.JornadaResponseDTO;
 import org.ncapas.canchitas.entities.*;
 import org.ncapas.canchitas.exception.CanchaNotFoundException;
 import org.ncapas.canchitas.repositories.*;
 import org.ncapas.canchitas.Service.CanchasService;
 import org.ncapas.canchitas.utils.mappers.CanchaMapper;
+import org.ncapas.canchitas.utils.mappers.JornadaMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -165,5 +167,19 @@ public class CanchasServiceImpl implements CanchasService {
         boolean solapaCon(Intervalo o) {
             return !(fin.isBefore(o.ini) || ini.isAfter(o.fin) || fin.equals(o.ini) || ini.equals(o.fin));
         }
+    }
+
+    @Override
+    public List<JornadaResponseDTO> findJornadasByCanchaAndDia(int canchaId,
+                                                               Semana.Dia dia) {
+
+        Cancha cancha = canchaRepo.findById(canchaId)
+                .orElseThrow(() ->
+                        new CanchaNotFoundException("Cancha no encontrada con id " + canchaId));
+
+        return cancha.getJornadas().stream()
+                .filter(j -> j.getSemana().getDia() == dia)
+                .map(JornadaMapper::toDTO)   // tu mapper existente
+                .toList();
     }
 }
