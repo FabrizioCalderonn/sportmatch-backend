@@ -11,15 +11,18 @@ import org.ncapas.canchitas.repositories.UsuarioRepostitory;
 import org.ncapas.canchitas.Service.UsuarioService;
 import org.ncapas.canchitas.utils.mappers.UsuarioMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;   // ← nuevo import
 
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepostitory usuarioRepo;
-    private final RolRepository rolRepo;
+    private final RolRepository      rolRepo;
+    private final PasswordEncoder    passwordEncoder;   // ← inyectado por Spring
 
     @Override
     public List<UsuarioResponseDTO> findAll() {
@@ -29,18 +32,27 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioResponseDTO findById(int id) {
         Usuario u = usuarioRepo.findById(id)
-                .orElseThrow(() -> new UsuarioNotFoundException("Usuario no encontrado con id " + id));
+                .orElseThrow(() -> new UsuarioNotFoundException(
+                        "Usuario no encontrado con id " + id));
         return UsuarioMapper.toDTO(u);
     }
 
     @Override
     public UsuarioResponseDTO save(UsuarioRequestDTO dto) {
-        // mapea el DTO pero crea Rol “stub”
+
+        // Mapea el DTO a entidad (incluye solo el id del rol)
         Usuario entidad = UsuarioMapper.toEntity(dto);
-        // busca rol real
+
+        // Encripta la contraseña
+        entidad.setContrasena(passwordEncoder.encode(dto.getContrasena()));
+
+        // Resuelve el rol real
         Rol rol = rolRepo.findById(dto.getRolId())
-                .orElseThrow(() -> new UsuarioNotFoundException("Rol no encontrado con id " + dto.getRolId()));
+                .orElseThrow(() -> new UsuarioNotFoundException(
+                        "Rol no encontrado con id " + dto.getRolId()));
         entidad.setRol(rol);
+
+        // Guarda y devuelve DTO
         Usuario guardado = usuarioRepo.save(entidad);
         return UsuarioMapper.toDTO(guardado);
     }
