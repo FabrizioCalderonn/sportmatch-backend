@@ -16,5 +16,5 @@ public interface ReservaService {
     List<ReservaResponseDTO> findByUsuario(Integer idUsuario);
     List<ReservaResponseDTO> findByUsuarioAndEstado(Integer idUsuario, Reserva.EstadoReserva estado);
     List<ReservaResponseDTO> findAllByFechaReserva(LocalDate fechaReserva);
-
+    List<ReservaResponseDTO> findByCanchaId(int canchaId);
 }

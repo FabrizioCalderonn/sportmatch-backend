@@ -152,6 +152,12 @@ public class ReservaServiceImpl implements ReservaService {
         java.sql.Date sql = java.sql.Date.valueOf(fechaReserva);
         return ReservaMapper.toDTOList(reservaRepo.findByFechaReserva(sql));
     }
+    /* ─────────────────── OBTENER RESERVA POR CANCHA ,ADMIN─────────────────── */
 
-
+    @Override
+    public List<ReservaResponseDTO> findByCanchaId(int canchaId) {
+        return ReservaMapper.toDTOList(
+                reservaRepo.findByCancha_IdCancha(canchaId)
+        );
+    }
 }

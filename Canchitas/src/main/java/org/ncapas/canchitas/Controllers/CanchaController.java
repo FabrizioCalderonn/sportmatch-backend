@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.ncapas.canchitas.DTOs.request.*;
 import org.ncapas.canchitas.DTOs.response.*;
 import org.ncapas.canchitas.Service.CanchasService;
+import org.ncapas.canchitas.Service.ReservaService;
 import org.ncapas.canchitas.entities.Semana;
 import org.ncapas.canchitas.entities.TipoCancha;
 import org.ncapas.canchitas.repositories.TipoCanchaRepository;
@@ -24,7 +25,7 @@ public class CanchaController {
 
     private final CanchasService       canchasService;
     private final TipoCanchaRepository tipoRepo;
-
+    private final ReservaService reservaService;  // inyectar
     /* ------------------------------------------------------------------
      * 1) Combo de tipos de cancha (público) ─ GET /api/canchas/tipos
      * ------------------------------------------------------------------ */
@@ -124,6 +125,22 @@ public class CanchaController {
         }
 
         var lista = canchasService.findJornadasByCanchaAndDia(id, diaEnum);
+        return ResponseEntity.ok(lista);
+    }
+
+
+    /* ------------------------------------------------------------------
+     * 7) OBTENER RESERVAS POR CANCHA (ADMIN) ─ DELETE /api/canchas/{id}/reservas
+     * ------------------------------------------------------------------ */
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}/reservas")
+    public ResponseEntity<List<ReservaResponseDTO>> reservasPorCancha(
+            @PathVariable int id) {
+
+        // lanza 404 si la cancha no existe
+        canchasService.findById(id);
+
+        List<ReservaResponseDTO> lista = reservaService.findByCanchaId(id);
         return ResponseEntity.ok(lista);
     }
     /* ------------------------------------------------------------------
