@@ -73,7 +73,7 @@ public class CanchaController {
     /* ------------------------------------------------------------------
      * 5) Actualizar (ADMIN) ─ PUT /api/canchas/{id}
      * ------------------------------------------------------------------ */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN')")
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> actualizar(
             @PathVariable int id,

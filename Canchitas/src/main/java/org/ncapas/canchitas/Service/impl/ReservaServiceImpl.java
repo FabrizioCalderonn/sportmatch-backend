@@ -21,11 +21,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReservaServiceImpl implements ReservaService {
 
-    private final ReservaRepository    reservaRepo;
-    private final UsuarioRepostitory   usuarioRepo;
-    private final LugarRepository      lugarRepo;
-    private final MetodoPagoRepository metodoRepo;
-    private final CanchaRepository     canchaRepo;
+    private final ReservaRepository              reservaRepo;
+    private final UsuarioRepostitory             usuarioRepo;
+    private final LugarRepository                lugarRepo;
+    private final MetodoPagoRepository           metodoRepo;
+    private final CanchaRepository               canchaRepo;
+    private final EstadoDisponibilidadRepository estadoDispRepo;  // ①
 
     /* ─────────────────── LECTURA ─────────────────── */
 
@@ -38,7 +39,8 @@ public class ReservaServiceImpl implements ReservaService {
     public ReservaResponseDTO findById(int id) {
         return reservaRepo.findById(id)
                 .map(ReservaMapper::toDTO)
-                .orElseThrow(() -> new ReservaNotFoundException("Reserva no encontrada con id " + id));
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Reserva no encontrada con id " + id));
     }
 
     /* ─────────────────── CREAR ─────────────────── */
@@ -47,42 +49,61 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional
     public ReservaResponseDTO save(ReservaRequestDTO dto) {
 
-        /* --- cargar entidades relacionadas --- */
+        // — cargar entidades relacionadas —
         Usuario usuario = usuarioRepo.findById(dto.getUsuarioId())
-                .orElseThrow(() -> new ReservaNotFoundException("Usuario no encontrado con id " + dto.getUsuarioId()));
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Usuario no encontrado con id " + dto.getUsuarioId()));
 
         Lugar lugar = lugarRepo.findById(dto.getLugarId())
-                .orElseThrow(() -> new ReservaNotFoundException("Lugar no encontrado con id " + dto.getLugarId()));
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Lugar no encontrado con id " + dto.getLugarId()));
 
         MetodoPago metodo = metodoRepo.findById(dto.getMetodoPagoId())
-                .orElseThrow(() -> new ReservaNotFoundException("Método de pago no encontrado con id " + dto.getMetodoPagoId()));
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Método de pago no encontrado con id " + dto.getMetodoPagoId()));
 
         Cancha cancha = canchaRepo.findById(dto.getCanchaId())
-                .orElseThrow(() -> new ReservaNotFoundException("Cancha no encontrada con id " + dto.getCanchaId()));
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Cancha no encontrada con id " + dto.getCanchaId()));
 
-        /* --- localizar bloque que cubra el horario --- */
+        // — convertir la fecha a nuestro enum Semana.Dia —
         LocalDate fecha = dto.getFechaReserva();
-        DayOfWeek dow   = fecha.getDayOfWeek();
+        DayOfWeek dow   = fecha.getDayOfWeek();                          // MONDAY…SUNDAY
+        final Semana.Dia diaEnum = Semana.Dia.values()[dow.getValue() - 1];
 
+        // — localizar el bloque que cubra el horario pedido —
         Jornada bloque = cancha.getJornadas().stream()
-                .filter(j -> j.getSemana().getDia().name().equalsIgnoreCase(dow.name()))
+                .filter(j -> j.getSemana().getDia() == diaEnum)
                 .filter(j -> !dto.getHoraEntrada().isBefore(j.getHoraInicio())
                         && !dto.getHoraSalida().isAfter(j.getHoraFin()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No existe bloque disponible que cubra el horario solicitado"));
 
-        /* --- calcular precioTotal = precioPorHora × horas --- */
-        long minutos = Duration.between(dto.getHoraEntrada(), dto.getHoraSalida()).toMinutes();
-        double horas = minutos / 60.0;                     // admite múltiplos de 1 h
-        double precioTotal = bloque.getPrecioPorHora() * horas;
+        // — calcular precioTotal = precioPorHora × horas —
+        long minutos  = Duration.between(dto.getHoraEntrada(), dto.getHoraSalida()).toMinutes();
+        double horas   = minutos / 60.0;
+        double precio  = bloque.getPrecioPorHora() * horas;
 
-        /* --- construir y guardar --- */
+        // — marcar como NO_DISPONIBLE todos los bloques dentro del rango —
+        EstadoDisponibilidad noDisp = estadoDispRepo
+                .findByEstado
+                        (EstadoDisponibilidad.Status.NO_DISPONIBLE)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Estado NO_DISPONIBLE no existe en la base de datos"));
+
+        cancha.getJornadas().stream()
+                .filter(j -> j.getSemana().getDia() == diaEnum)
+                .filter(j -> !j.getHoraInicio().isBefore(dto.getHoraEntrada())
+                        && !j.getHoraFin().isAfter(dto.getHoraSalida()))
+                .forEach(j -> j.setEstadoDisponibilidad(noDisp));
+
+        // — construir y guardar la reserva —
         Reserva nueva = Reserva.builder()
                 .fechaReserva(java.sql.Date.valueOf(fecha))
                 .horaEntrada(dto.getHoraEntrada())
                 .horaSalida(dto.getHoraSalida())
-                .precioTotal(precioTotal)
+                .precioTotal(precio)
                 .fechaCreacion(new Date())
                 .estadoReserva(Reserva.EstadoReserva.PENDIENTE)
                 .usuario(usuario)
@@ -99,8 +120,38 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     public void delete(int id) {
         if (!reservaRepo.existsById(id)) {
-            throw new ReservaNotFoundException("No existe reserva con id " + id);
+            throw new ReservaNotFoundException(
+                    "No existe reserva con id " + id);
         }
         reservaRepo.deleteById(id);
     }
+
+    /* ─────────────────── OBTENER RESERVA POR USUARIO ─────────────────── */
+
+
+    @Override
+    public List<ReservaResponseDTO> findByUsuario(Integer idUsuario) {
+        return ReservaMapper.toDTOList(
+                reservaRepo.findByUsuario_IdUsuario(idUsuario)
+        );
+    }
+
+    /* ─────────────────── OBTENER RESERVA POR USUARIO Y ESTADO ─────────────────── */
+
+    @Override
+    public List<ReservaResponseDTO> findByUsuarioAndEstado(Integer idUsuario,
+                                                           Reserva.EstadoReserva estado) {
+        return ReservaMapper.toDTOList(
+                reservaRepo.findByUsuario_IdUsuarioAndEstadoReserva(idUsuario, estado)
+        );
+    }
+    /* ─────────────────── OBTENER RESERVA POR FECHA ,ADMIN─────────────────── */
+
+    @Override
+    public List<ReservaResponseDTO> findAllByFechaReserva(LocalDate fechaReserva) {
+        java.sql.Date sql = java.sql.Date.valueOf(fechaReserva);
+        return ReservaMapper.toDTOList(reservaRepo.findByFechaReserva(sql));
+    }
+
+
 }

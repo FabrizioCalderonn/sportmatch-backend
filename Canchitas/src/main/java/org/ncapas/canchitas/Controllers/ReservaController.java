@@ -6,12 +6,15 @@ import lombok.RequiredArgsConstructor;
 import org.ncapas.canchitas.DTOs.request.ReservaRequestDTO;
 import org.ncapas.canchitas.DTOs.response.ReservaResponseDTO;
 import org.ncapas.canchitas.Service.ReservaService;
+import org.ncapas.canchitas.entities.Reserva;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -27,8 +30,16 @@ public class ReservaController {
     ─────────────────────────────── */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public List<ReservaResponseDTO> listar() {
-        return reservaService.findAll();
+    public List<ReservaResponseDTO> listar(
+            @RequestParam(name="fechaReserva", required=false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fechaReserva
+    ) {
+        if (fechaReserva == null) {
+            return reservaService.findAll();
+        } else {
+            return reservaService.findAllByFechaReserva(fechaReserva);
+        }
     }
 
     /* ───────────────────────────────
@@ -43,7 +54,7 @@ public class ReservaController {
     /* ───────────────────────────────
        3) Crear reserva (ROLE_USER)
     ─────────────────────────────── */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENTE')")
     @PostMapping
     public ResponseEntity<ReservaResponseDTO> crear(
             @Valid @RequestBody ReservaRequestDTO dto) {
@@ -62,7 +73,7 @@ public class ReservaController {
     /* ───────────────────────────────
        4) Eliminar reserva (ADMIN)
     ─────────────────────────────── */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> eliminar(@PathVariable int id) {
 
@@ -75,5 +86,25 @@ public class ReservaController {
                 + r.getNombreCancha() + " ha sido eliminada";
 
         return ResponseEntity.ok( Map.of("mensaje", msg) );
+    }
+
+
+    /* ───────────────────────────────
+       4) Listar reservas de un usuario, OPCIONALMENTE filtradas por estado
+         GET /api/reservas/usuario/{usuarioId}?estado=PENDIENTE
+    ─────────────────────────────── */
+    @PreAuthorize("hasRole('CLIENTE') or hasRole('ADMIN')")
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<ReservaResponseDTO>> reservasPorUsuario(
+            @PathVariable Integer usuarioId,
+            @RequestParam(required = false) Reserva.EstadoReserva estado) {
+
+        List<ReservaResponseDTO> lista;
+        if (estado != null) {
+            lista = reservaService.findByUsuarioAndEstado(usuarioId, estado);
+        } else {
+            lista = reservaService.findByUsuario(usuarioId);
+        }
+        return ResponseEntity.ok(lista);
     }
 }

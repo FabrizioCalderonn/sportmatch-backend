@@ -13,7 +13,7 @@ public class LocalTimeEsSerializer extends JsonSerializer<LocalTime> {
 
     /* 07:00 PM  (ENGLISH => AM/PM en mayúsculas) */
     private static final DateTimeFormatter BASE =
-            DateTimeFormatter.ofPattern("hh:mm a", Locale.ENGLISH);
+            DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
 
     @Override
     public void serialize(LocalTime value, JsonGenerator gen,
