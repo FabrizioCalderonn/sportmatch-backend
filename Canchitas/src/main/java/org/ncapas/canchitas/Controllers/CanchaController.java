@@ -130,7 +130,7 @@ public class CanchaController {
 
 
     /* ------------------------------------------------------------------
-     * 7) OBTENER RESERVAS POR CANCHA (ADMIN) ─ DELETE /api/canchas/{id}/reservas
+     * 7) OBTENER RESERVAS POR CANCHA (ADMIN) ─ GET /api/canchas/{id}/reservas
      * ------------------------------------------------------------------ */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}/reservas")
