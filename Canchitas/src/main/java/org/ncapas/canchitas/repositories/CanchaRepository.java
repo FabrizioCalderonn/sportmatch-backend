@@ -11,5 +11,5 @@ public interface CanchaRepository extends JpaRepository<Cancha, Integer> {
     // Para buscar cancha por lugar
     List<Cancha> findByIdCancha(Integer idLugar);
     boolean existsByLugar_IdLugarAndNumeroCancha(Integer lugarId, Integer numeroCancha);
-
+    List<Cancha> findByLugar_IdLugar(Integer idLugar);
 }

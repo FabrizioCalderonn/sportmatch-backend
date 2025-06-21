@@ -1,4 +1,4 @@
-package org.ncapas.canchitas.controllers;
+package org.ncapas.canchitas.Controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -35,11 +35,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/canchas/tipos").permitAll() // Obtemer canchas
                         .requestMatchers(HttpMethod.GET, "/api/canchas/{id}").permitAll() // Obtemer canchas
 
+
+                        /* ---------- combos en cascada ---------- */
+                        // 1) zonas  →  lugares
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/zonas/*/lugares"        // p.e. /api/zonas/3/lugares
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
+                        // 2) lugares →  canchas
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/lugares/*/canchas"      // p.e. /api/lugares/7/canchas
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
                         // *** REGISTRO PÚBLICO ***
                         .requestMatchers(HttpMethod.POST,   "/api/lugares").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/lugares/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,   "/api/canchas").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/canchas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/reservas").hasRole("ADMIN")
                         // todo lo demás necesita token
                         .anyRequest().authenticated()
                 )

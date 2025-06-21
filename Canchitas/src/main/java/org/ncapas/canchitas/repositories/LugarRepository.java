@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface LugarRepository extends JpaRepository <Lugar, Integer> {
-
+    List<Lugar> findByZona_IdZona(Integer idZona);
 }
