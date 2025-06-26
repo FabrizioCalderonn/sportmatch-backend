@@ -93,7 +93,7 @@ public class GlobalExceptionHandler {
                 .build());
     }
 
-    // Cuando un usuario accede a una ruta sin permisos 
+    // Cuando un usuario accede a una ruta sin permisos
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiError.builder()
