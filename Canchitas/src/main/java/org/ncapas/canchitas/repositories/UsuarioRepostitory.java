@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface UsuarioRepostitory extends JpaRepository<Usuario, Integer> {
     //Para buscar en login y registro
     Optional<Usuario> findByCorreo(String correo);
+
+    //verificar si el correo ya existe
+    boolean existsByCorreo (String correo);
 }

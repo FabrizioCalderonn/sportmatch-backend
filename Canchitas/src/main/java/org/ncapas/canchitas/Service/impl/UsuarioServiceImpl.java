@@ -40,6 +40,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioResponseDTO save(UsuarioRequestDTO dto) {
 
+        //verificar si el correo ya existe
+        if (usuarioRepo.existsByCorreo(dto.getCorreo())){
+            throw new IllegalArgumentException("Ya existe un usuario con ese correo");
+        }
+
         // Mapea el DTO a entidad (incluye solo el id del rol)
         Usuario entidad = UsuarioMapper.toEntity(dto);
 
