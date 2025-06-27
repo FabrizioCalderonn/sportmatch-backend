@@ -49,6 +49,9 @@ public class ReservaServiceImpl implements ReservaService {
     @Transactional
     public ReservaResponseDTO save(ReservaRequestDTO dto) {
 
+        //validacion de campos
+        validarCamposLlenos(dto);
+
         // — cargar entidades relacionadas —
         Usuario usuario = usuarioRepo.findById(dto.getUsuarioId())
                 .orElseThrow(() -> new ReservaNotFoundException(
@@ -160,4 +163,18 @@ public class ReservaServiceImpl implements ReservaService {
                 reservaRepo.findByCancha_IdCancha(canchaId)
         );
     }
+
+    //validar que todos los campos esten llenos
+    private void validarCamposLlenos(ReservaRequestDTO dto) {
+        if (dto.getFechaReserva() == null
+                || dto.getHoraEntrada() == null
+                || dto.getHoraSalida() == null
+                || dto.getUsuarioId() == null
+                || dto.getLugarId() == null
+                || dto.getMetodoPagoId() == null
+                || dto.getCanchaId() == null) {
+            throw new IllegalArgumentException("Todos los campos del formulario de reserva deben estar completos.");
+        }
+    }
+
 }
