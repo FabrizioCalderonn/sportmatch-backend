@@ -31,6 +31,7 @@ public class SecurityConfig {
                         // autenticación y login siguen públicos
 
                         /* ---------- Rutas públicas ---------- */
+                        .requestMatchers("/").permitAll()                                 // root
                         .requestMatchers("/health").permitAll()                           // health check
                         .requestMatchers("/api/auth/**").permitAll()                      // login
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()    // registro

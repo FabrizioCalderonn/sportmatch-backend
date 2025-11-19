@@ -9,10 +9,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/health")
 public class HealthController {
 
-    @GetMapping
+    @GetMapping("/")
+    public ResponseEntity<Map<String, String>> root() {
+        Map<String, String> response = new HashMap<>();
+        response.put("service", "SportMatch Backend API");
+        response.put("status", "Running");
+        response.put("version", "1.0.0");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
