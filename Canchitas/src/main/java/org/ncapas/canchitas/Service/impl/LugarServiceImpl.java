@@ -35,6 +35,10 @@ public class LugarServiceImpl implements LugarService {
 
     @Override
     public LugarResponseDTO save(LugarRequestDTO dto) {
+
+        //validar campos
+        validarCamposLlenos(dto);
+
         // 1) Cargar la zona relacionada
         Zona zona = zonaRepo.findById(dto.getZona())
                 .orElseThrow(() -> new LugarNotFoundException("Zona no encontrada con id " + dto.getZona()));
@@ -58,5 +62,16 @@ public class LugarServiceImpl implements LugarService {
             throw new LugarNotFoundException("No existe lugar con id " + id);
         }
         lugarRepo.deleteById(id);
+    }
+
+    //validar campos
+    private void validarCamposLlenos(LugarRequestDTO dto) {
+        if (dto.getNombre() == null || dto.getNombre().isBlank()
+                || dto.getDireccion() == null || dto.getDireccion().isBlank()
+                || dto.getCodigo() == null
+                || dto.getZona() == null) {
+            throw new IllegalArgumentException("Todos los campos del formulario de lugar deben estar completos.");
+        }
+
     }
 }

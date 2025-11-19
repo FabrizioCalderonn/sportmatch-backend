@@ -40,6 +40,14 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioResponseDTO save(UsuarioRequestDTO dto) {
 
+        //validar todos los campos llenos
+        validarCamposLlenos(dto);
+
+        //verificar si el correo ya existe
+        if (usuarioRepo.existsByCorreo(dto.getCorreo())){
+            throw new IllegalArgumentException("Ya existe un usuario con ese correo");
+        }
+
         // Mapea el DTO a entidad (incluye solo el id del rol)
         Usuario entidad = UsuarioMapper.toEntity(dto);
 
@@ -64,4 +72,16 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         usuarioRepo.deleteById(id);
     }
+
+    //validar todos los campos
+    private void validarCamposLlenos(UsuarioRequestDTO dto) {
+        if (dto.getNombre() == null || dto.getNombre().isBlank()
+                || dto.getApellido() == null || dto.getApellido().isBlank()
+                || dto.getCorreo() == null || dto.getCorreo().isBlank()
+                || dto.getContrasena() == null || dto.getContrasena().isBlank()
+                || dto.getRolId() == null) {
+            throw new IllegalArgumentException("Todos los campos del formulario deben estar completos.");
+        }
+    }
+
 }

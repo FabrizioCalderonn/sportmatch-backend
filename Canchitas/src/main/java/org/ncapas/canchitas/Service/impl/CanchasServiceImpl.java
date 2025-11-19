@@ -42,6 +42,9 @@ public class CanchasServiceImpl implements CanchasService {
     @Transactional
     public CanchasResponseDTO save(CanchaRequestDTO dto) {
 
+        //validar
+        validarCamposLlenos(dto);
+
         // Evitar mismo número de cancha en mismo lugar
         if (canchaRepo.existsByLugar_IdLugarAndNumeroCancha(dto.getLugarId(), dto.getNumeroCancha())) {
             throw new IllegalArgumentException("Ya existe una cancha con ese número en el lugar indicado");
@@ -73,6 +76,9 @@ public class CanchasServiceImpl implements CanchasService {
     @Override
     @Transactional
     public CanchasResponseDTO update(CanchaUpdateRequestDTO dto) {
+
+        //validar
+        validarCamposLlenos(dto);
 
         Cancha cancha = canchaRepo.findById(dto.getIdCancha())
                 .orElseThrow(() -> new CanchaNotFoundException("Cancha no encontrada con id " + dto.getIdCancha()));
@@ -182,4 +188,29 @@ public class CanchasServiceImpl implements CanchasService {
                 .map(JornadaMapper::toDTO)   // tu mapper existente
                 .toList();
     }
+
+    // validar llenar campos
+    private void validarCamposLlenos(CanchaRequestDTO dto) {
+        if (dto.getNombre() == null || dto.getNombre().isBlank()
+                || dto.getImagenes() == null || dto.getImagenes().isEmpty()
+                || dto.getNumeroCancha() == null
+                || dto.getTipoCanchaId() == null
+                || dto.getLugarId() == null
+                || dto.getJornadas() == null || dto.getJornadas().isEmpty()) {
+            throw new IllegalArgumentException("Todos los campos del formulario de cancha deben estar completos.");
+        }
+    }
+
+    private void validarCamposLlenos(CanchaUpdateRequestDTO dto) {
+        if (dto.getIdCancha() == null
+                || dto.getNombre() == null || dto.getNombre().isBlank()
+                || dto.getImagenes() == null || dto.getImagenes().isEmpty()
+                || dto.getNumeroCancha() == null
+                || dto.getTipoCanchaId() == null
+                || dto.getLugarId() == null
+                || dto.getJornadas() == null || dto.getJornadas().isEmpty()) {
+            throw new IllegalArgumentException("Todos los campos del formulario de actualización de cancha deben estar completos.");
+        }
+    }
 }
+

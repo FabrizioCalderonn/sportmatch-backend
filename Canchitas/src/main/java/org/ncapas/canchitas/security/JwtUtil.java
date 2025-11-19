@@ -10,7 +10,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // ‼️ Usa mínimo 32 bytes (HS256)
+    //  Usa mínimo 32 bytes (HS256)
     private static final Key SECRET = Keys.hmacShaKeyFor(
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30".getBytes());
 

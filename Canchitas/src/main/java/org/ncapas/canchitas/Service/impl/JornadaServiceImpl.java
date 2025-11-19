@@ -39,6 +39,10 @@ public class JornadaServiceImpl implements JornadaService {
 
     @Override
     public JornadaResponseDTO save(JornadaRequestDTO dto) {
+
+        //validar campos
+        validarCamposLlenos(dto);
+
         // 1) Cargar entidades relacionadas
         Semana semana = semanaRepo.findById(dto.getSemanaId())
                 .orElseThrow(() -> new JornadaNotFoundException("Semana no encontrada con id " + dto.getSemanaId()));
@@ -66,4 +70,17 @@ public class JornadaServiceImpl implements JornadaService {
         }
         jornadaRepo.deleteById(id);
     }
+
+    //validar campos
+    private void validarCamposLlenos(JornadaRequestDTO dto) {
+        if (dto.getHoraInicio() == null ||
+                dto.getHoraFin() == null ||
+                dto.getPrecioPorHora() == null ||
+                dto.getEstadoDisponibilidadId() == null ||  // ← cambio importante
+                dto.getSemanaId() == null) {
+            throw new IllegalArgumentException("Todos los campos del formulario de jornada deben estar completos.");
+        }
+    }
+
+
 }
