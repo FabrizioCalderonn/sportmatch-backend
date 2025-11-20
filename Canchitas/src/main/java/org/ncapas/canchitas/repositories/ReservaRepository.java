@@ -4,6 +4,7 @@ import org.ncapas.canchitas.entities.Reserva;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -11,6 +12,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
 
     // Busca todas las reservas por id del usuario
     List<Reserva> findByUsuario_IdUsuario(Integer usuarioId);
+
     // Busca todas las reservas por id de la cancha
     List<Reserva> findByCancha_IdCancha(Integer idCancha);
 
@@ -28,9 +30,11 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
 
     // Busca reservas por lugar y estado
     List<Reserva> findByCancha_Lugar_IdLugarAndEstadoReserva(Integer idLugar, Reserva.EstadoReserva estadoReserva);
-    List<Reserva> findByFechaReserva(java.util.Date fechaReserva);
 
-    List<Reserva> findByCancha_IdCancha(Integer canchaId);
+    // Busca reservas por fecha
+    List<Reserva> findByFechaReserva(Date fechaReserva);
+
+    // Busca reservas por cancha y fecha
     List<Reserva> findByCancha_IdCanchaAndFechaReserva(Integer canchaId, Date fechaReserva);
 
 }
