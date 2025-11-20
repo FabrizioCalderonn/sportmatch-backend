@@ -25,8 +25,8 @@ public class TipoCancha {
     private Tipo tipo;
 
     public enum Tipo{
-        FUTBOLL_RAPIDO,
-        GRAMA_ARTIFICIAL;
+    FUTBOLL_RAPIDO("Fútbol rápido"),
+    GRAMA_ARTIFICIAL("Grama artificial");
 
         @JsonCreator
         public static Tipo from(String value) {
