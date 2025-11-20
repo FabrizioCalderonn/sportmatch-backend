@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class ReservaServiceImpl implements ReservaService {
     private final LugarRepository                lugarRepo;
     private final MetodoPagoRepository           metodoRepo;
     private final CanchaRepository               canchaRepo;
-    private final EstadoDisponibilidadRepository estadoDispRepo;  // ①
+    private final EstadoDisponibilidadRepository estadoDispRepo;
 
     /* ─────────────────── LECTURA ─────────────────── */
 
@@ -71,7 +72,7 @@ public class ReservaServiceImpl implements ReservaService {
 
         // — convertir la fecha a nuestro enum Semana.Dia —
         LocalDate fecha = dto.getFechaReserva();
-        DayOfWeek dow   = fecha.getDayOfWeek();                          // MONDAY…SUNDAY
+        DayOfWeek dow   = fecha.getDayOfWeek();
         final Semana.Dia diaEnum = Semana.Dia.values()[dow.getValue() - 1];
 
         // — localizar el bloque que cubra el horario pedido —
@@ -90,8 +91,7 @@ public class ReservaServiceImpl implements ReservaService {
 
         // — marcar como NO_DISPONIBLE todos los bloques dentro del rango —
         EstadoDisponibilidad noDisp = estadoDispRepo
-                .findByEstado
-                        (EstadoDisponibilidad.Status.NO_DISPONIBLE)
+                .findByEstado(EstadoDisponibilidad.Status.NO_DISPONIBLE)
                 .orElseThrow(() -> new IllegalStateException(
                         "Estado NO_DISPONIBLE no existe en la base de datos"));
 
@@ -131,7 +131,6 @@ public class ReservaServiceImpl implements ReservaService {
 
     /* ─────────────────── OBTENER RESERVA POR USUARIO ─────────────────── */
 
-
     @Override
     public List<ReservaResponseDTO> findByUsuario(Integer idUsuario) {
         return ReservaMapper.toDTOList(
@@ -148,14 +147,16 @@ public class ReservaServiceImpl implements ReservaService {
                 reservaRepo.findByUsuario_IdUsuarioAndEstadoReserva(idUsuario, estado)
         );
     }
-    /* ─────────────────── OBTENER RESERVA POR FECHA ,ADMIN─────────────────── */
+
+    /* ─────────────────── OBTENER RESERVA POR FECHA, ADMIN ─────────────────── */
 
     @Override
     public List<ReservaResponseDTO> findAllByFechaReserva(LocalDate fechaReserva) {
         java.sql.Date sql = java.sql.Date.valueOf(fechaReserva);
         return ReservaMapper.toDTOList(reservaRepo.findByFechaReserva(sql));
     }
-    /* ─────────────────── OBTENER RESERVA POR CANCHA ,ADMIN─────────────────── */
+
+    /* ─────────────────── OBTENER RESERVA POR CANCHA, ADMIN ─────────────────── */
 
     @Override
     public List<ReservaResponseDTO> findByCanchaId(int canchaId) {
@@ -164,7 +165,36 @@ public class ReservaServiceImpl implements ReservaService {
         );
     }
 
-    //validar que todos los campos esten llenos
+    /* ───────────────────FECHAS OCUPADAS POR CANCHA ─────────────────── */
+
+    @Override
+    public List<String> findFechasOcupadasByCancha(Integer canchaId) {
+        return reservaRepo.findByCancha_IdCancha(canchaId).stream()
+                .map(reserva -> {
+                    // Convertir java.sql.Date a LocalDate y luego a String
+                    java.sql.Date sqlDate = (java.sql.Date) reserva.getFechaReserva();
+                    return sqlDate.toLocalDate().toString();
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /* ───────────────────HORAS OCUPADAS POR CANCHA Y FECHA ─────────────────── */
+
+    @Override
+    public List<String> findHorasOcupadasByCanchaAndFecha(Integer canchaId, LocalDate fecha) {
+        java.sql.Date sqlDate = java.sql.Date.valueOf(fecha);
+        
+        return reservaRepo.findByCancha_IdCanchaAndFechaReserva(canchaId, sqlDate).stream()
+                .map(reserva -> reserva.getHoraEntrada().toString())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /* ─────────────────── VALIDACIÓN ─────────────────── */
+
     private void validarCamposLlenos(ReservaRequestDTO dto) {
         if (dto.getFechaReserva() == null
                 || dto.getHoraEntrada() == null
@@ -176,5 +206,4 @@ public class ReservaServiceImpl implements ReservaService {
             throw new IllegalArgumentException("Todos los campos del formulario de reserva deben estar completos.");
         }
     }
-
 }

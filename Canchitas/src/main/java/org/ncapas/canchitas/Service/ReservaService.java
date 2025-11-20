@@ -7,7 +7,6 @@ import org.ncapas.canchitas.entities.Reserva;
 import java.time.LocalDate;
 import java.util.List;
 
-
 public interface ReservaService {
     List<ReservaResponseDTO> findAll();
     ReservaResponseDTO findById(int id);
@@ -17,4 +16,6 @@ public interface ReservaService {
     List<ReservaResponseDTO> findByUsuarioAndEstado(Integer idUsuario, Reserva.EstadoReserva estado);
     List<ReservaResponseDTO> findAllByFechaReserva(LocalDate fechaReserva);
     List<ReservaResponseDTO> findByCanchaId(int canchaId);
+    List<String> findFechasOcupadasByCancha(Integer canchaId);
+    List<String> findHorasOcupadasByCanchaAndFecha(Integer canchaId, LocalDate fecha);
 }

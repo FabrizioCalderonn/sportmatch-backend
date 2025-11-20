@@ -30,6 +30,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
     List<Reserva> findByCancha_Lugar_IdLugarAndEstadoReserva(Integer idLugar, Reserva.EstadoReserva estadoReserva);
     List<Reserva> findByFechaReserva(java.util.Date fechaReserva);
 
+    List<Reserva> findByCancha_IdCancha(Integer canchaId);
+    List<Reserva> findByCancha_IdCanchaAndFechaReserva(Integer canchaId, Date fechaReserva);
+
 }
 
 

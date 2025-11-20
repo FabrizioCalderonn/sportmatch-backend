@@ -107,4 +107,29 @@ public class ReservaController {
         }
         return ResponseEntity.ok(lista);
     }
+
+    /* ────────────────────────────────────────────────────
+   Fechas ocupadas por cancha
+   GET /api/reservas/fechas-ocupadas?canchaId={id}
+──────────────────────────────────────────────────── */
+@GetMapping("/fechas-ocupadas")
+public ResponseEntity<List<String>> fechasOcupadas(
+        @RequestParam Integer canchaId) {
+
+    List<String> fechas = reservaService.findFechasOcupadasByCancha(canchaId);
+    return ResponseEntity.ok(fechas);
+}
+
+/* ────────────────────────────────────────────────────
+   Horas ocupadas por cancha y fecha
+   GET /api/reservas/horas-ocupadas?canchaId={id}&fecha={fecha}
+──────────────────────────────────────────────────── */
+@GetMapping("/horas-ocupadas")
+public ResponseEntity<List<String>> horasOcupadas(
+        @RequestParam Integer canchaId,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+
+    List<String> horas = reservaService.findHorasOcupadasByCanchaAndFecha(canchaId, fecha);
+    return ResponseEntity.ok(horas);
+}
 }

@@ -18,6 +18,7 @@ public class CatalogoController {
     private final LugarRepository   lugarRepo;
     private final CanchaRepository  canchaRepo;
     private final ZonaRepository    zonaRepo;      // por si quieres validar existencia
+    private final MetodoPagoRepository metodoPagoRepo;
 
     /* ────────────────────────────────
      * 1) LUGARES por zona
@@ -58,4 +59,45 @@ public class CatalogoController {
 
         return ResponseEntity.ok(lista);
     }
+
+    /* ────────────────────────────────
+     * 3) LISTA DE ZONAS
+     *    GET /api/zonas
+     * ──────────────────────────────── */
+    @GetMapping("/zonas")
+    public ResponseEntity<List<ZonaComboDTO>> listarZonas() {
+        List<ZonaComboDTO> lista = zonaRepo.findAll().stream()
+                .map(z -> new ZonaComboDTO(
+                        z.getIdZona(),
+                        z.getDepartamento() + " - " + z.getDistrito()
+                ))
+                .toList();
+        return ResponseEntity.ok(lista);
+    }
+
+    /* ────────────────────────────────
+     * 4) METODOS DE PAGO
+     *    GET /api/metodos-pago
+     * ──────────────────────────────── */
+    @GetMapping("/metodos-pago")
+    public ResponseEntity<List<MetodoPagoDTO>> listarMetodosPago() {
+        List<MetodoPagoDTO> lista = metodoPagoRepo.findAll().stream()
+                .map(mp -> new MetodoPagoDTO(
+                        mp.getIdMetodoPago(),
+                        formatearMetodo(mp.getMetodoPago())
+                ))
+                .toList();
+        return ResponseEntity.ok(lista);
+    }
+
+    /* ────────────────────────────────
+     * Metodo auxiliar para formatear metodo de pago
+     * ──────────────────────────────── */
+    private String formatearMetodo(MetodoPago.Metodo metodo) {
+        return switch (metodo) {
+            case TARJETA_CREDITO -> "Tarjeta de Crédito";
+            case TARJETA_DEBITO -> "Tarjeta de Débito";
+        };
+    }
+
 }
