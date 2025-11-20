@@ -16,26 +16,36 @@ import lombok.Builder;
 @Table(name = "tipo_cancha")
 public class TipoCancha {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_tipo_cancha")
-    private Integer idTipoCancha;
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+@Column(name = "id_tipo_cancha")
+private Integer idTipoCancha;
 
-    @Column(name = "tipo", nullable = false, unique = true)
-    private Tipo tipo;
+@Column(name = "tipo", nullable = false, unique = true)
+private Tipo tipo;
 
-    public enum Tipo{
+public enum Tipo {
     FUTBOLL_RAPIDO("Fútbol rápido"),
     GRAMA_ARTIFICIAL("Grama artificial");
 
-        @JsonCreator
-        public static Tipo from(String value) {
-            return Tipo.valueOf(value.trim().toUpperCase());
-        }
+    private final String displayName;  
 
-        @JsonValue
-        public String toValue() {
-            return this.name();
-        }
+    Tipo(String displayName) {
+        this.displayName = displayName;
     }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @JsonCreator
+    public static Tipo from(String value) {
+        return Tipo.valueOf(value.trim().toUpperCase());
+    }
+
+    @JsonValue
+    public String toValue() {
+        return this.name();
+    }
+}
 }
