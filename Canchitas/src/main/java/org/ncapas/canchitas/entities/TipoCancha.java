@@ -25,8 +25,8 @@ private Integer idTipoCancha;
 private Tipo tipo;
 
 public enum Tipo {
-    FUTBOLL_RAPIDO("Fútbol rápido"),
-    GRAMA_ARTIFICIAL("Grama artificial");
+    FUTBOLL_RAPIDO("Fútbol Rápido"),
+    GRAMA_ARTIFICIAL("Grama Artificial");
 
     private final String displayName;  
 
