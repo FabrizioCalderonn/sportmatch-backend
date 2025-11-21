@@ -5,7 +5,6 @@ import org.ncapas.canchitas.DTOs.response.UsuarioResponseDTO;
 
 import java.util.List;
 
-
 public interface UsuarioService {
     List<UsuarioResponseDTO> findAll();
     UsuarioResponseDTO findById(int id);
