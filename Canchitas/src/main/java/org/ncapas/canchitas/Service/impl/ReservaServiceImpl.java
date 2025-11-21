@@ -46,69 +46,35 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     @Transactional
     public ReservaResponseDTO save(ReservaRequestDTO dto) {
-        System.out.println("========================================");
-        System.out.println("🎯 INICIANDO PROCESO DE RESERVA");
-        System.out.println("========================================");
-        System.out.println("📥 Datos recibidos:");
-        System.out.println("   - Fecha: " + dto.getFechaReserva());
-        System.out.println("   - Hora entrada: " + dto.getHoraEntrada());
-        System.out.println("   - Hora salida: " + dto.getHoraSalida());
-        System.out.println("   - Usuario ID: " + dto.getUsuarioId());
-        System.out.println("   - Lugar ID: " + dto.getLugarId());
-        System.out.println("   - Cancha ID: " + dto.getCanchaId());
-        System.out.println("   - Método Pago ID: " + dto.getMetodoPagoId());
-        System.out.println("========================================");
+        System.out.println("Iniciando proceso de reserva - Fecha: " + dto.getFechaReserva() +
+                           ", Usuario ID: " + dto.getUsuarioId() + ", Cancha ID: " + dto.getCanchaId());
 
-        // 1. VALIDAR CAMPOS
         validarCamposLlenos(dto);
-        System.out.println("✅ Validación de campos: OK");
 
-        // 2. BUSCAR ENTIDADES
         Usuario usuario = usuarioRepo.findById(dto.getUsuarioId())
-                .orElseThrow(() -> {
-                    System.out.println("❌ ERROR: Usuario no encontrado con ID " + dto.getUsuarioId());
-                    return new ReservaNotFoundException(
-                            "Usuario no encontrado con id " + dto.getUsuarioId());
-                });
-        System.out.println("✅ Usuario encontrado: " + usuario.getNombre());
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Usuario no encontrado con id " + dto.getUsuarioId()));
 
         Lugar lugar = lugarRepo.findById(dto.getLugarId())
-                .orElseThrow(() -> {
-                    System.out.println("❌ ERROR: Lugar no encontrado con ID " + dto.getLugarId());
-                    return new ReservaNotFoundException(
-                            "Lugar no encontrado con id " + dto.getLugarId());
-                });
-        System.out.println("✅ Lugar encontrado: " + lugar.getNombre());
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Lugar no encontrado con id " + dto.getLugarId()));
 
         MetodoPago metodo = metodoRepo.findById(dto.getMetodoPagoId())
-                .orElseThrow(() -> {
-                    System.out.println("❌ ERROR: Método de pago no encontrado con ID " + dto.getMetodoPagoId());
-                    return new ReservaNotFoundException(
-                            "Método de pago no encontrado con id " + dto.getMetodoPagoId());
-                });
-        System.out.println("✅ Método de pago encontrado: " + metodo.getNombre());
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Método de pago no encontrado con id " + dto.getMetodoPagoId()));
 
         Cancha cancha = canchaRepo.findById(dto.getCanchaId())
-                .orElseThrow(() -> {
-                    System.out.println("❌ ERROR: Cancha no encontrada con ID " + dto.getCanchaId());
-                    return new ReservaNotFoundException(
-                            "Cancha no encontrada con id " + dto.getCanchaId());
-                });
-        System.out.println("✅ Cancha encontrada: " + cancha.getNombre());
+                .orElseThrow(() -> new ReservaNotFoundException(
+                        "Cancha no encontrada con id " + dto.getCanchaId()));
 
-        // 3. CALCULAR PRECIO DESDE JORNADAS
         double precioTotal = calcularPrecioDesdeJornadas(dto, cancha);
-        System.out.println("💰 Precio total calculado: $" + precioTotal);
 
-        // 4. MARCAR JORNADAS COMO NO DISPONIBLES (si existen)
         try {
             marcarJornadasNoDisponibles(dto, cancha);
         } catch (Exception e) {
-            System.out.println("⚠️ Advertencia al actualizar disponibilidad: " + e.getMessage());
-            // Continuar de todas formas
+            System.err.println("Error al actualizar disponibilidad de jornadas: " + e.getMessage());
         }
 
-        // 5. CREAR Y GUARDAR RESERVA
         Reserva nueva = Reserva.builder()
                 .fechaReserva(java.sql.Date.valueOf(dto.getFechaReserva()))
                 .horaEntrada(dto.getHoraEntrada())
@@ -122,19 +88,9 @@ public class ReservaServiceImpl implements ReservaService {
                 .cancha(cancha)
                 .build();
 
-        System.out.println("📝 Guardando reserva en la base de datos...");
         Reserva guardada = reservaRepo.save(nueva);
-
-        System.out.println("========================================");
-        System.out.println("✅ ¡RESERVA GUARDADA EXITOSAMENTE!");
-        System.out.println("   - ID Reserva: " + guardada.getIdReserva());
-        System.out.println("   - Usuario ID: " + usuario.getIdUsuario());
-        System.out.println("   - Usuario: " + usuario.getNombre());
-        System.out.println("   - Cancha: " + cancha.getNombre());
-        System.out.println("   - Fecha: " + dto.getFechaReserva());
-        System.out.println("   - Horario: " + dto.getHoraEntrada() + " - " + dto.getHoraSalida());
-        System.out.println("   - Total: $" + precioTotal);
-        System.out.println("========================================");
+        System.out.println("Reserva creada exitosamente - ID: " + guardada.getIdReserva() +
+                           ", Total: $" + precioTotal);
 
         return ReservaMapper.toDTO(guardada);
     }
@@ -148,21 +104,25 @@ public class ReservaServiceImpl implements ReservaService {
         long minutos = Duration.between(dto.getHoraEntrada(), dto.getHoraSalida()).toMinutes();
         double horas = minutos / 60.0;
 
-        System.out.println("========================================");
-        System.out.println("💰 CÁLCULO DE PRECIO:");
-        System.out.println("   - Duración: " + minutos + " minutos (" + horas + " horas)");
+        System.out.println("Calculando precio - Duracion: " + minutos + " minutos (" + horas + " horas)");
+
+        // Validar que la cancha tenga jornadas configuradas
+        if (cancha.getJornadas() == null || cancha.getJornadas().isEmpty()) {
+            double precioDefecto = 10.0;
+            System.out.println("Cancha sin jornadas configuradas. Usando precio por defecto: $" + precioDefecto + "/hora");
+            return precioDefecto * horas;
+        }
 
         // Obtener día de la semana
         LocalDate fecha = dto.getFechaReserva();
         DayOfWeek dow = fecha.getDayOfWeek();
         Semana.Dia diaEnum = Semana.Dia.values()[dow.getValue() - 1];
 
-        System.out.println("   - Día de la semana: " + diaEnum);
-        System.out.println("   - Buscando jornada para este día y horario...");
+        System.out.println("Buscando jornada para: " + diaEnum + " " + dto.getHoraEntrada() + "-" + dto.getHoraSalida());
 
         // Buscar jornada que cubra el horario solicitado
         Optional<Jornada> jornadaOpt = cancha.getJornadas().stream()
-                .filter(j -> j.getSemana().getDia() == diaEnum)
+                .filter(j -> j.getSemana() != null && j.getSemana().getDia() == diaEnum)
                 .filter(j -> !dto.getHoraEntrada().isBefore(j.getHoraInicio())
                         && !dto.getHoraSalida().isAfter(j.getHoraFin()))
                 .findFirst();
@@ -171,18 +131,14 @@ public class ReservaServiceImpl implements ReservaService {
         if (jornadaOpt.isPresent()) {
             Jornada jornada = jornadaOpt.get();
             precioPorHora = jornada.getPrecioPorHora();
-            System.out.println("   ✅ Jornada encontrada!");
-            System.out.println("   - Horario jornada: " + jornada.getHoraInicio() + " - " + jornada.getHoraFin());
-            System.out.println("   - Precio/hora de jornada: $" + precioPorHora);
+            System.out.println("Jornada encontrada - Precio/hora: $" + precioPorHora);
         } else {
             precioPorHora = 10.0; // Precio por defecto
-            System.out.println("   ⚠️ No se encontró jornada específica");
-            System.out.println("   - Usando precio por defecto: $" + precioPorHora + "/hora");
+            System.out.println("Jornada no encontrada. Usando precio por defecto: $" + precioPorHora + "/hora");
         }
 
         double precioTotal = precioPorHora * horas;
-        System.out.println("   - PRECIO TOTAL: $" + precioTotal);
-        System.out.println("========================================");
+        System.out.println("Precio total calculado: $" + precioTotal);
 
         return precioTotal;
     }
@@ -191,12 +147,18 @@ public class ReservaServiceImpl implements ReservaService {
      * Marca las jornadas como NO_DISPONIBLE para el día reservado.
      */
     private void marcarJornadasNoDisponibles(ReservaRequestDTO dto, Cancha cancha) {
+        // Validar que la cancha tenga jornadas
+        if (cancha.getJornadas() == null || cancha.getJornadas().isEmpty()) {
+            System.out.println("Cancha sin jornadas configuradas - no se actualiza disponibilidad");
+            return;
+        }
+
         // Buscar estado NO_DISPONIBLE
         Optional<EstadoDisponibilidad> noDispOpt = estadoDispRepo
                 .findByEstado(EstadoDisponibilidad.Status.NO_DISPONIBLE);
 
         if (noDispOpt.isEmpty()) {
-            System.out.println("⚠️ Estado NO_DISPONIBLE no existe en BD, saltando actualización");
+            System.out.println("Estado NO_DISPONIBLE no existe en BD - saltando actualizacion");
             return;
         }
 
@@ -207,13 +169,13 @@ public class ReservaServiceImpl implements ReservaService {
 
         // Marcar jornadas como no disponibles
         long jornadasActualizadas = cancha.getJornadas().stream()
-                .filter(j -> j.getSemana().getDia() == diaEnum)
+                .filter(j -> j.getSemana() != null && j.getSemana().getDia() == diaEnum)
                 .filter(j -> !j.getHoraInicio().isBefore(dto.getHoraEntrada())
                         && !j.getHoraFin().isAfter(dto.getHoraSalida()))
                 .peek(j -> j.setEstadoDisponibilidad(noDisp))
                 .count();
 
-        System.out.println("📅 Jornadas marcadas como NO_DISPONIBLE: " + jornadasActualizadas);
+        System.out.println("Jornadas marcadas como NO_DISPONIBLE: " + jornadasActualizadas);
     }
 
     @Override
@@ -222,14 +184,13 @@ public class ReservaServiceImpl implements ReservaService {
             throw new ReservaNotFoundException("No existe reserva con id " + id);
         }
         reservaRepo.deleteById(id);
-        System.out.println("🗑️ Reserva eliminada con ID: " + id);
+        System.out.println("Reserva eliminada - ID: " + id);
     }
 
     @Override
     public List<ReservaResponseDTO> findByUsuario(Integer idUsuario) {
-        System.out.println("🔍 Buscando reservas del usuario ID: " + idUsuario);
         List<Reserva> reservas = reservaRepo.findByUsuario_IdUsuario(idUsuario);
-        System.out.println("📋 Reservas encontradas: " + reservas.size());
+        System.out.println("Reservas encontradas para usuario " + idUsuario + ": " + reservas.size());
         return ReservaMapper.toDTOList(reservas);
     }
 
