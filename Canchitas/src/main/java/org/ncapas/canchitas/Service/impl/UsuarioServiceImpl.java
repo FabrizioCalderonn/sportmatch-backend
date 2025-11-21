@@ -11,18 +11,17 @@ import org.ncapas.canchitas.repositories.UsuarioRepostitory;
 import org.ncapas.canchitas.Service.UsuarioService;
 import org.ncapas.canchitas.utils.mappers.UsuarioMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.password.PasswordEncoder;   // ← nuevo import
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepostitory usuarioRepo;
-    private final RolRepository      rolRepo;
-    private final PasswordEncoder    passwordEncoder;   // ← inyectado por Spring
+    private final RolRepository rolRepo;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<UsuarioResponseDTO> findAll() {
@@ -40,27 +39,22 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioResponseDTO save(UsuarioRequestDTO dto) {
 
-        //validar todos los campos llenos
         validarCamposLlenos(dto);
 
-        //verificar si el correo ya existe
-        if (usuarioRepo.existsByCorreo(dto.getCorreo())){
+        // Verificar si el correo ya existe
+        if (usuarioRepo.existsByCorreo(dto.getCorreo())) {
             throw new IllegalArgumentException("Ya existe un usuario con ese correo");
         }
 
-        // Mapea el DTO a entidad (incluye solo el id del rol)
         Usuario entidad = UsuarioMapper.toEntity(dto);
 
-        // Encripta la contraseña
         entidad.setContrasena(passwordEncoder.encode(dto.getContrasena()));
 
-        // Resuelve el rol real
         Rol rol = rolRepo.findById(dto.getRolId())
                 .orElseThrow(() -> new UsuarioNotFoundException(
                         "Rol no encontrado con id " + dto.getRolId()));
         entidad.setRol(rol);
 
-        // Guarda y devuelve DTO
         Usuario guardado = usuarioRepo.save(entidad);
         return UsuarioMapper.toDTO(guardado);
     }
@@ -73,7 +67,15 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioRepo.deleteById(id);
     }
 
-    //validar todos los campos
+    @Override
+    public UsuarioResponseDTO findByCorreo(String correo) {
+        Usuario u = usuarioRepo.findByCorreo(correo)
+                .orElseThrow(() -> new UsuarioNotFoundException(
+                        "No existe un usuario con el correo " + correo
+                ));
+        return UsuarioMapper.toDTO(u);
+    }
+
     private void validarCamposLlenos(UsuarioRequestDTO dto) {
         if (dto.getNombre() == null || dto.getNombre().isBlank()
                 || dto.getApellido() == null || dto.getApellido().isBlank()
@@ -83,5 +85,4 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("Todos los campos del formulario deben estar completos.");
         }
     }
-
 }

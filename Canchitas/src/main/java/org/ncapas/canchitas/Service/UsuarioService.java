@@ -11,4 +11,5 @@ public interface UsuarioService {
     UsuarioResponseDTO findById(int id);
     UsuarioResponseDTO save(UsuarioRequestDTO usuario);
     void delete(int id);
+    UsuarioResponseDTO findByCorreo(String correo);
 }
