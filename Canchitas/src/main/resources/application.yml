@@ -3,7 +3,7 @@ spring:
     name: canchitas
 
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:canchitas_management_pruebas}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/canchitas_management_pruebas}  
     username: ${PGUSER:postgres}
     password: ${PGPASSWORD:admin}
     driver-class-name: org.postgresql.Driver
