@@ -3,10 +3,18 @@ spring:
     name: canchitas
 
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/canchitas_management_pruebas}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/canchitas_management_pruebas}
     username: ${PGUSER:postgres}
     password: ${PGPASSWORD:admin}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      initialization-fail-timeout: -1
+      connection-test-query: SELECT 1
+      keepalive-time: 30000
+      max-lifetime: 600000
+      maximum-pool-size: 5
+      minimum-idle: 1
 
   jpa:
     show-sql: ${SHOW_SQL:false}
